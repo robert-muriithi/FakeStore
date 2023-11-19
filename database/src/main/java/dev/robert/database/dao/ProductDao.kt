@@ -21,4 +21,7 @@ interface ProductDao {
 
     @Insert
     suspend fun insertProduct(product: ProductEntity)
+
+    @Insert
+    suspend fun insertProducts(product: List<ProductEntity>)
 }
