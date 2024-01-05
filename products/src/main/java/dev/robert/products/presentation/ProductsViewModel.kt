@@ -13,6 +13,7 @@ import dev.robert.products.domain.usecase.GetProductCategory
 import dev.robert.products.domain.usecase.GetProductsUseCase
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -77,43 +78,58 @@ class ProductsViewModel @Inject constructor(
         }
     }
 
-    private val _categoriesState = mutableStateOf(emptyList<String>())
-    val categoriesState: State<List<String>> = _categoriesState
+    private val _categoriesState = mutableStateOf(StateHolder<List<String>>())
+    val categoriesState: State<StateHolder<List<String>>> = _categoriesState
 
     private val _productsState = mutableStateOf(StateHolder<List<Product>>())
     val productsState: State<StateHolder<List<Product>>> = _productsState
 
-     fun getProductCategories() {
+    private val _products = mutableStateOf(StateHolder<List<Product>>())
+    val products: State<StateHolder<List<Product>>> = _products
+
+     private fun getProductCategories() {
+         _categoriesState.value = categoriesState.value.copy(
+             isLoading = true
+         )
         viewModelScope.launch {
             getCategoriesUseCase.invoke().collectLatest {
                 when (it) {
                     is Resource.Success -> {
                         it.value.let { categories ->
-                            _categoriesState.value = listOf("All") + categories
+                            _categoriesState.value = categoriesState.value.copy(
+                                isLoading = false,
+                                data = listOf("All") + categories
+                            )
                         }
                     }
                     is Resource.Failure -> {
-                        _categoriesState.value = emptyList()
+                        _categoriesState.value = categoriesState.value.copy(
+                            isLoading = false,
+                            error = it.throwable.message ?: "An unexpected error occurred"
+                        )
                     }
                 }
             }
         }
     }
 
-    fun getProducts() {
+    private fun getProducts() {
+        _products.value = products.value.copy(
+            isLoading = true
+        )
         viewModelScope.launch {
             getProductsUseCase.invoke().collectLatest {
                 when (it) {
                     is Resource.Success -> {
-                        it.value.let { products ->
-                            _productsState.value = productsState.value.copy(
+                        it.value.let { data ->
+                            _products.value = products.value.copy(
                                 isLoading = false,
-                                data = products
+                                data = data
                             )
                         }
                     }
                     is Resource.Failure -> {
-                        _productsState.value = productsState.value.copy(
+                        _products.value = products.value.copy(
                             isLoading = false,
                             error = it.throwable.message ?: "An unexpected error occurred"
                         )
@@ -125,6 +141,7 @@ class ProductsViewModel @Inject constructor(
 
     init {
         getProductCategories()
+        getProducts()
     }
 
 }

@@ -1,112 +1,280 @@
 package dev.robert.products.presentation
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScrollableTabRow
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.rememberImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.annotation.RootNavGraph
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import dev.robert.products.R
 import dev.robert.products.domain.model.Product
+import dev.robert.products.domain.model.Rating
+import dev.robert.products.presentation.destinations.ProductDetailsScreenDestination
+import dev.robert.products.presentation.widgets.AppBar
+import java.lang.Math.ceil
+import java.lang.Math.floor
+
 
 @Composable
+@Destination
+@RootNavGraph(start = true)
 fun HomeScreen(
-    viewModel: ProductsViewModel = hiltViewModel()
+    viewModel: ProductsViewModel = hiltViewModel(),
+    navigator: HomeScreenNavigator,
 ) {
     val productsState = viewModel.productsState.value
     val categoriesState = viewModel.categoriesState.value
     val selectedCategory = viewModel.selectedCategory.value
+    val products = viewModel.products.value
+
+    val verticalGridState = rememberLazyStaggeredGridState()
 
     ProductsWidget(
         productsState = productsState,
+        products = products,
         categoriesState = categoriesState,
         selectedCategory = selectedCategory,
         onCategorySelected = viewModel::setCategory,
-        onProductSelected = viewModel::getProductById,
-        onProductCategorySelected = viewModel::getProductCategory,
-        onProductCategories = viewModel::getProductCategories,
+        verticalGridState = verticalGridState,
+        navigator = navigator
     )
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ProductsWidget(
-    productsState: StateHolder<List<Product>>,
-    categoriesState: List<String>,
+    productsState: StateHolder<List<Product>>?,
+    products: StateHolder<List<Product>>?,
+    categoriesState: StateHolder<List<String>>?,
     selectedCategory: String,
     onCategorySelected: (String) -> Unit,
-    onProductSelected: (Int) -> Unit,
-    onProductCategorySelected: (String) -> Unit,
-    onProductCategories: () -> Unit,
+    verticalGridState : LazyStaggeredGridState,
+    navigator: HomeScreenNavigator
 ) {
     Scaffold(
         topBar = {
-            TopBar(
+            /*TopBar(
                 categories = categoriesState,
                 selectedCategory = selectedCategory,
                 onCategorySelected = onCategorySelected,
-                onProductCategories = onProductCategories
+            )*/
+            AppBar(
+                title = "Hello, Robert",
+                showLeading = false
             )
         },
-        content = {
+    ) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 10.dp)) {
+            if (products!!.isLoading)
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            if (!products.isLoading && products.error != null)
+                ErrorComponent(productsState = productsState)
+            if (products.data?.isEmpty() == true && products.isLoading.not())
+                EmptyProductsComponent()
+            if (products.data?.isNotEmpty() == true && products.isLoading.not() && products.error == null)
+                ProductSuccessComponent(
+                    productsState = productsState,
+                    selectedCategory = selectedCategory,
+                    products = products,
+                    onProductSelected = {},
+                    onProductCategorySelected = {},
+                    verticalGridState = verticalGridState,
+                    navigator = navigator
+                )
+        }
+    }
+
+
+}
+
+@Composable
+fun ProductSuccessComponent(
+    productsState: StateHolder<List<Product>>?,
+    selectedCategory: String,
+    products: StateHolder<List<Product>>?,
+    onProductSelected: (Int) -> Unit,
+    onProductCategorySelected: (String) -> Unit,
+    verticalGridState : LazyStaggeredGridState,
+    navigator: HomeScreenNavigator
+) {
+    val data = products?.data
+    if (products == null) return
+    if (data == null) return
+    if (products.isLoading || products.error != null || data.isEmpty()) return
+    when {
+        selectedCategory != "All" -> ProductsList(
+            products = productsState,
+            onProductSelected = onProductSelected,
+            onProductCategorySelected = onProductCategorySelected,
+            verticalGridState = verticalGridState,
+            navigator = navigator
+        )
+        else -> Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 10.dp)) {
             ProductsList(
-                productsState = productsState,
+                products = products,
                 onProductSelected = onProductSelected,
-                onProductCategorySelected = onProductCategorySelected
+                onProductCategorySelected = onProductCategorySelected,
+                verticalGridState = verticalGridState,
+                navigator = navigator
             )
         }
+    }
+}
+
+@Composable
+fun BoxScope.ErrorComponent(
+    productsState: StateHolder<List<Product>>?
+) {
+    productsState?.error?.let {
+        Text(
+            text = it,
+            modifier = Modifier.align(Alignment.Center)
+        )
+    }
+
+}
+
+@Composable
+fun BoxScope.EmptyProductsComponent() {
+    Text(
+        text = "No products found",
+        modifier = Modifier.align(Alignment.Center)
     )
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(
-    categories: List<String>,
+    categories: StateHolder<List<String>>?,
     selectedCategory: String,
     onCategorySelected: (String) -> Unit,
-    onProductCategories: () -> Unit
+    modifier : Modifier = Modifier
 ) {
     TopAppBar(
+        modifier = modifier
+            .fillMaxWidth(),
         title = {
-        ScrollableTabRow(selectedTabIndex = categories.indexOf(selectedCategory)) {
-            categories.forEachIndexed { index, category ->
-                Tab(
-                    selected = selectedCategory == category,
-                    onClick = { onCategorySelected(category) },
-                    text = { Text(category) }
+            /*categories?.data?.indexOf(selectedCategory)?.let {
+                ScrollableTabRow(selectedTabIndex = it) {
+                    categories.data.forEachIndexed { _, category ->
+                        Tab(
+                            selected = selectedCategory == category,
+                            onClick = { onCategorySelected(category) },
+                            text = {
+                                Text(text = category.capitalize(Locale.ROOT))
+                            }
+                        )
+                    }
+                }
+            }*/
+                Text(
+                    text = "Hello, Robert",
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    ),
+                    modifier = Modifier
+                        .padding(start = 10.dp)
+                )
+        },
+        actions = {
+            IconButton(
+                onClick = {}
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Notifications,
+                    contentDescription = null
                 )
             }
         }
-
-    })
+    )
 }
 
 @Composable
 fun ProductsList(
-    productsState: StateHolder<List<Product>>,
+    products: StateHolder<List<Product>>?,
     onProductSelected: (Int) -> Unit,
-    onProductCategorySelected: (String) -> Unit
+    onProductCategorySelected: (String) -> Unit,
+    verticalGridState : LazyStaggeredGridState,
+    navigator: HomeScreenNavigator
 ) {
-    
+    val context = LocalContext.current
+    val contentPadding = PaddingValues(8.dp)
     LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Adaptive(160.dp),
+        contentPadding = contentPadding,
+        state = verticalGridState,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 20.dp),
+        columns = StaggeredGridCells.Adaptive(150.dp),
         content = {
-            productsState.data?.let {
+            item {
+                HeaderItem()
+            }
+            products?.data?.let {
                 items(it.size) { index ->
                     ProductCard(
-                        product = productsState.data[index],
+                        product = products.data[index],
                         onProductSelected = onProductSelected,
-                        onProductCategorySelected = onProductCategorySelected
+                        onProductCategorySelected = onProductCategorySelected,
+                        onclick = {
+//                            navigator.navigate(
+//                                ProductDetailsScreenDestination.invoke(products.data[index])
+//                            )
+                            navigator.openProductDetails(products.data[index])
+                        }
                     )
                 }
             }
@@ -115,32 +283,160 @@ fun ProductsList(
 }
 
 @Composable
+fun HeaderItem() {
+    Box(modifier = Modifier.fillMaxWidth()){
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(150.dp),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 6.dp
+            )
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.banner),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp),
+                contentScale = ContentScale.Crop
+            )
+        }
+    }
+}
+
+@Composable
 fun ProductCard(
     product: Product,
     onProductSelected: (Int) -> Unit,
-    onProductCategorySelected: (String) -> Unit
+    onProductCategorySelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    onclick: (Int) -> Unit = {}
 ) {
-
-    Box(modifier = androidx.compose.ui.Modifier.clickable { onProductSelected(product.id) }){
-        ProductImage(
-            imageUrl = product.image,
-            contentDescription = product.title
-        )
-        ProductTitle(
-            title = product.title,
-            modifier = androidx.compose.ui.Modifier.clickable { onProductCategorySelected(product.category) }
-        )
+    Card(
+        modifier = modifier
+            .padding(8.dp)
+            .fillMaxSize()
+            .clickable { onProductSelected(product.id) }) {
+        Column(modifier = modifier.fillMaxWidth()) {
+            ProductImage(
+                imageUrl = product.image,
+                contentDescription = product.title
+            )
+            Column(modifier = modifier
+                .fillMaxWidth()
+                .padding(8.dp)) {
+                ProductTitle(title = product.title)
+                ProductDescription(description = product.description)
+                ProductPriceAndRating(price = product.price, rating = product.rating)
+                CartButton(onclick = {
+                    onclick(product.id)
+                })
+            }
+        }
     }
+}
+
+@Composable
+fun CartButton(onclick: () -> Unit) {
+    val clicked = remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End
+    ) {
+        IconButton(
+            onClick = {
+            onclick()
+            clicked.value = !clicked.value
+        }) {
+            Icon(
+                imageVector = clicked.value.let {
+                    if (it) Icons.Outlined.ShoppingCart else Icons.Default.ShoppingCart
+                },
+                contentDescription = "Add to cart",
+                modifier = Modifier
+                    .height(14.dp)
+
+            )
+        }
+    }
+}
+
+@Composable
+fun ProductPriceAndRating(price: Double, rating: Rating) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        ProductPriceTag(price = price, rating = rating)
+//        ProductRating(rating = rating)
+    }
+}
+
+@Composable
+fun ProductRating(rating: Rating, starsColor : Color = Color.Yellow, modifier: Modifier = Modifier) {
+    val filledStars = floor(rating.rate).toInt()
+    val unfilledStars = (rating.count - ceil(rating.rate)).toInt()
+    val halfStar = !(rating.rate.rem(1).equals(0.0))
+     Row(
+         modifier = modifier
+     ){
+         repeat(filledStars) {
+             Icon(imageVector = Icons.Filled.Star, contentDescription = null, tint = starsColor)
+         }
+         if (halfStar) {
+             Icon(
+                 imageVector = Icons.Filled.Star,
+                 contentDescription = null,
+                 tint = starsColor
+             )
+         }
+         repeat(unfilledStars) {
+             Icon(
+                 imageVector = Icons.Outlined.Star,
+                 contentDescription = null,
+                 tint = starsColor
+             )
+         }
+     }
+}
+
+
+@Composable
+fun ProductPriceTag(price: Double, rating: Rating) {
+    Text(
+            text = "$$price",
+            style = TextStyle(
+                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp
+            )
+        )
+}
+@Composable
+fun ProductDescription(description: String) {
+    Text(
+        text = description,
+        style = TextStyle(
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Thin
+        ),
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis
+    )
 }
 
 @Composable
 fun ProductTitle(
     title: String,
-    modifier: androidx.compose.ui.Modifier
+    modifier: Modifier = Modifier
 ) {
     Text(
         text = title,
-        modifier = modifier
+        style = TextStyle(
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp
+        )
     )
 }
 
@@ -151,13 +447,24 @@ fun ProductImage(
     contentDescription: String
 ) {
     Image(
-        painter = rememberImagePainter(
-            data = imageUrl,
-            builder = {
-                crossfade(true)
-            }
+        painter = rememberAsyncImagePainter(
+            ImageRequest.Builder(LocalContext.current).data(data = imageUrl)
+                .apply(block = fun ImageRequest.Builder.() {
+                    crossfade(true)
+                }).build()
         ),
-        contentDescription = contentDescription
+        contentDescription = contentDescription,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(150.dp),
+        contentScale = ContentScale.Crop
     )
+}
+interface HomeScreenNavigator {
+    fun openHome()
+
+    fun openProductDetails(product: Product)
+
+    fun popupBackStack()
 }
 
