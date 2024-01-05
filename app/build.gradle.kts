@@ -4,6 +4,7 @@ plugins {
     kotlin("kapt")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
+    id("kotlin-parcelize")
 
 }
 
@@ -36,6 +37,7 @@ android {
 
     buildTypes {
         release {
+            isDebuggable =  true
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -68,6 +70,7 @@ dependencies {
     implementation(project(":cart"))
     implementation(project(":products"))
     implementation(project(":user"))
+    implementation(project(":core"))
 }
 
 kapt {
