@@ -1,7 +1,7 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
-    kotlin("kapt")
+    id("kotlin-kapt")
     id("com.google.devtools.ksp")
     id("kotlin-parcelize")
 }
@@ -43,6 +43,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
+    }
+    kotlin {
+        jvmToolchain(11)
     }
     buildFeatures {
         compose = true

@@ -1,7 +1,7 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
-    kotlin("kapt")
+    id("kotlin-kapt")
     id("com.google.devtools.ksp")
 }
 
@@ -50,7 +50,7 @@ android {
         kotlinCompilerExtensionVersion = "1.5.1"
     }
     kotlin {
-        jvmToolchain(18)
+        jvmToolchain(11)
     }
 }
 
