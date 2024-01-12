@@ -1,11 +1,9 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
-    id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
     id("kotlin-parcelize")
-
 }
 
 apply {
@@ -33,6 +31,16 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        // For Room database
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += mapOf(
+                    "room.schemaLocation" to "$projectDir/schemas".toString(),
+                    "room.incremental" to "true",
+                    "room.expandProjection" to "true"
+                )
+            }
+        }
     }
 
     buildTypes {
@@ -46,11 +54,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
     kotlin {
         jvmToolchain(11)
@@ -76,7 +84,4 @@ dependencies {
     implementation(project(":core"))
 }
 
-kapt {
-    correctErrorTypes = true
-}
 
