@@ -2,7 +2,8 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("kotlin-parcelize")
-    id("com.google.devtools.ksp")
+    id ("com.google.devtools.ksp") version "1.9.20-1.0.14"
+    kotlin("plugin.serialization") version "1.9.0"
     id("com.google.dagger.hilt.android")
 
 
@@ -54,7 +55,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.4"
     }
 }
 
