@@ -11,46 +11,54 @@ import dev.robert.products.presentation.destinations.HomeScreenDestination
 import dev.robert.user.presentation.destinations.ProfileScreenDestination
 
 object NavGraphsBuilder {
-    val auth = object : NavGraphSpec {
-        override val destinationsByRoute: Map<String, DestinationSpec<*>>
-            get() = mapOf(
-                "login_screen" to LoginScreenDestination,
-                "register_screen" to RegisterScreenDestination
-            )
-
-        override val route: String
-            get() = "auth"
-        override val startRoute: Route
-            get() = LoginScreenDestination routedIn this
-    }
 
     val home = object : NavGraphSpec {
-        override val destinationsByRoute: Map<String, DestinationSpec<*>>
-            get() = mapOf(
-                "home_screen" to HomeScreenDestination,
-                "cart_screen" to CartScreenDestination,
-                "profile_screen" to ProfileScreenDestination
-            )
+        override val route = "home"
 
-        override val route: String
-            get() = "home_screen"
-        override val startRoute: Route
-            get() = HomeScreenDestination routedIn this
+        override val startRoute = HomeScreenDestination routedIn this
+
+        override val destinationsByRoute = listOf<DestinationSpec<*>>(
+            HomeScreenDestination,
+        ).routedIn(this)
+            .associateBy { it.route }
     }
 
     val cart = object : NavGraphSpec {
-        override val destinationsByRoute: Map<String, DestinationSpec<*>>
-            get() = mapOf(
-                "cart_screen" to CartScreenDestination
-            )
+        override val route = "cart"
 
-        override val route: String
-            get() = "cart_screen"
-        override val startRoute: Route
-            get() = CartScreenDestination routedIn this
+        override val startRoute = CartScreenDestination routedIn this
+
+        override val destinationsByRoute = listOf<DestinationSpec<*>>(
+            CartScreenDestination,
+        ).routedIn(this)
+            .associateBy { it.route }
     }
 
     val profile = object : NavGraphSpec {
+        override val route = "profile"
+
+        override val startRoute = ProfileScreenDestination routedIn this
+
+        override val destinationsByRoute = listOf<DestinationSpec<*>>(
+            ProfileScreenDestination
+        ).routedIn(this)
+            .associateBy { it.route }
+    }
+
+    val auth = object : NavGraphSpec {
+        override val route = "auth"
+
+        override val startRoute = LoginScreenDestination routedIn this
+
+        override val destinationsByRoute = listOf<DestinationSpec<*>>(
+            LoginScreenDestination,
+            RegisterScreenDestination
+        ).routedIn(this)
+            .associateBy { it.route }
+    }
+
+
+    /*val profile = object : NavGraphSpec {
         override val destinationsByRoute: Map<String, DestinationSpec<*>>
             get() = mapOf(
                 "profile_screen" to ProfileScreenDestination
@@ -60,7 +68,7 @@ object NavGraphsBuilder {
             get() = "profile_screen"
         override val startRoute: Route
             get() = ProfileScreenDestination routedIn this
-    }
+    }*/
 
 
     val root = object : NavGraphSpec {
@@ -69,7 +77,7 @@ object NavGraphsBuilder {
         override val destinationsByRoute = emptyMap<String, DestinationSpec<*>>()
         override val nestedNavGraphs = listOf(
             home,
-            /*cart,*/
+            cart,
             profile,
         )
     }
@@ -81,7 +89,7 @@ object NavGraphsBuilder {
         override val nestedNavGraphs = listOf(
             auth,
             home,
-            /*cart,*/
+            cart,
             profile,
         )
     }

@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import timber.log.Timber
 
 class ProductsRepositoryImpl (
     private val productsApi: ProductsApi,
@@ -66,7 +67,8 @@ class ProductsRepositoryImpl (
         val categories = cachedCategories.map { it.category }
         if (cachedCategories.isNullOrEmpty()){
             try {
-                val remoteData = productsApi.getCategories()
+                val remoteData : List<String> = productsApi.getCategories()
+                Timber.d("Remote data: $remoteData")
                 categoryDao.insertCategories(remoteData.map {
                     CategoryEntity(category = it)
                 })

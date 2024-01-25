@@ -8,29 +8,31 @@ import dev.robert.database.entities.ProductEntity
 import dev.robert.database.entities.ProductRating
 
 @ProvidedTypeConverter
-class ProductEntityConverters {
+class ProductEntityConverters(
+    private val gson : Gson
+) {
 
     @TypeConverter
     fun fromProductEntityList(productEntityList: List<ProductEntity>): String {
         val type = object : TypeToken<List<ProductEntity>>() {}.type
-        return Gson().toJson(productEntityList, type)
+        return gson.toJson(productEntityList, type)
     }
 
     @TypeConverter
     fun toProductEntityList(productEntityListString: String): List<ProductEntity> {
         val type = object : TypeToken<List<ProductEntity>>() {}.type
-        return Gson().fromJson(productEntityListString, type)
+        return gson.fromJson(productEntityListString, type)
     }
 
     @TypeConverter
     fun fromProductRating(productRating: ProductRating): String {
         val type = object : TypeToken<ProductRating>() {}.type
-        return Gson().toJson(productRating, type)
+        return gson.toJson(productRating, type)
     }
 
     @TypeConverter
     fun toProductRating(productRatingString: String): ProductRating {
         val type = object : TypeToken<ProductRating>() {}.type
-        return Gson().fromJson(productRatingString, type)
+        return gson.fromJson(productRatingString, type)
     }
 }
