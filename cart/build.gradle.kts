@@ -60,6 +60,10 @@ android {
 }
 
 dependencies {
+    //Compose destinations
+    implementation("io.github.raamcosta.compose-destinations:animations-core:1.9.55")
+    ksp("io.github.raamcosta.compose-destinations:ksp:1.9.55")
+
     implementation(project(":network"))
     implementation(project(":database"))
 
