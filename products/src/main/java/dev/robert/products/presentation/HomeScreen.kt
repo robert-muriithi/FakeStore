@@ -68,17 +68,17 @@ import java.lang.Math.floor
 @RootNavGraph(start = true)
 fun HomeScreen(
     viewModel: ProductsViewModel = hiltViewModel(),
-   // navigator: HomeScreenNavigator,
+//    navigator: HomeScreenNavigator,
 ) {
 
-    Box(
+    /*Box(
         modifier = Modifier
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Text(text = "Home", style = MaterialTheme.typography.bodyLarge)
 
-    }
+    }*/
 
     val productsState = viewModel.productsState.value
     val categoriesState = viewModel.categoriesState.value
@@ -87,15 +87,15 @@ fun HomeScreen(
 
     val verticalGridState = rememberLazyStaggeredGridState()
 
-    /*ProductsWidget(
+    ProductsWidget(
         productsState = productsState,
         products = products,
         categoriesState = categoriesState,
         selectedCategory = selectedCategory,
         onCategorySelected = viewModel::setCategory,
         verticalGridState = verticalGridState,
-        navigator = navigator
-    )*/
+//        navigator = navigator
+    )
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -107,7 +107,7 @@ fun ProductsWidget(
     selectedCategory: String,
     onCategorySelected: (String) -> Unit,
     verticalGridState : LazyStaggeredGridState,
-    navigator: HomeScreenNavigator
+//    navigator: HomeScreenNavigator
 ) {
     Scaffold(
         topBar = {
@@ -139,7 +139,7 @@ fun ProductsWidget(
                     onProductSelected = {},
                     onProductCategorySelected = {},
                     verticalGridState = verticalGridState,
-                    navigator = navigator
+//                    navigator = navigator
                 )
         }
     }
@@ -155,7 +155,7 @@ fun ProductSuccessComponent(
     onProductSelected: (Int) -> Unit,
     onProductCategorySelected: (String) -> Unit,
     verticalGridState : LazyStaggeredGridState,
-    navigator: HomeScreenNavigator
+//    navigator: HomeScreenNavigator
 ) {
     val data = products?.data
     if (products == null) return
@@ -167,7 +167,7 @@ fun ProductSuccessComponent(
             onProductSelected = onProductSelected,
             onProductCategorySelected = onProductCategorySelected,
             verticalGridState = verticalGridState,
-            navigator = navigator
+//            navigator = navigator
         )
         else -> Box(modifier = Modifier
             .fillMaxSize()
@@ -177,7 +177,7 @@ fun ProductSuccessComponent(
                 onProductSelected = onProductSelected,
                 onProductCategorySelected = onProductCategorySelected,
                 verticalGridState = verticalGridState,
-                navigator = navigator
+//                navigator = navigator
             )
         }
     }
@@ -259,7 +259,7 @@ fun ProductsList(
     onProductSelected: (Int) -> Unit,
     onProductCategorySelected: (String) -> Unit,
     verticalGridState : LazyStaggeredGridState,
-    navigator: HomeScreenNavigator
+//    navigator: HomeScreenNavigator
 ) {
     val context = LocalContext.current
     val contentPadding = PaddingValues(8.dp)
@@ -284,7 +284,8 @@ fun ProductsList(
 //                            navigator.navigate(
 //                                ProductDetailsScreenDestination.invoke(products.data[index])
 //                            )
-                            navigator.openProductDetails(products.data[index])
+
+//                            navigator.openProductDetails(products.data[index])
                         }
                     )
                 }
