@@ -30,6 +30,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -67,8 +68,18 @@ import java.lang.Math.floor
 @RootNavGraph(start = true)
 fun HomeScreen(
     viewModel: ProductsViewModel = hiltViewModel(),
-    navigator: HomeScreenNavigator,
+   // navigator: HomeScreenNavigator,
 ) {
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = "Home", style = MaterialTheme.typography.bodyLarge)
+
+    }
+
     val productsState = viewModel.productsState.value
     val categoriesState = viewModel.categoriesState.value
     val selectedCategory = viewModel.selectedCategory.value
@@ -76,7 +87,7 @@ fun HomeScreen(
 
     val verticalGridState = rememberLazyStaggeredGridState()
 
-    ProductsWidget(
+    /*ProductsWidget(
         productsState = productsState,
         products = products,
         categoriesState = categoriesState,
@@ -84,7 +95,7 @@ fun HomeScreen(
         onCategorySelected = viewModel::setCategory,
         verticalGridState = verticalGridState,
         navigator = navigator
-    )
+    )*/
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
