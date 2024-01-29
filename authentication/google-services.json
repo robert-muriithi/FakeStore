@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1022815495488",
+    "project_id": "fakestore-f104b",
+    "storage_bucket": "fakestore-f104b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1022815495488:android:0ca49194061431b2a746a5",
+        "android_client_info": {
+          "package_name": "dev.robert.fakestore"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1022815495488-jq27d70d0nt6gea96smomclonmqcqm63.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "dev.robert.fakestore",
+            "certificate_hash": "1deb4c79ef5631deb7129ab5ab769200d02f3580"
+          }
+        },
+        {
+          "client_id": "1022815495488-iosv750s9p8a6rakmvnqempej113ce97.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvY6ydr3cBekeV2N9_oH-Qob0aZmPFRcw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1022815495488-iosv750s9p8a6rakmvnqempej113ce97.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

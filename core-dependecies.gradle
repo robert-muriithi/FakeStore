@@ -12,4 +12,12 @@ dependencies {
 
     //Gson
     implementation("com.google.code.gson:gson:2.8.9")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:32.7.1"))
+
+    // Firebase Auth
+    implementation("com.google.firebase:firebase-auth-ktx")
+    // Firebase Firestore
+    implementation("com.google.firebase:firebase-firestore-ktx")
 }
