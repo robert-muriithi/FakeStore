@@ -13,9 +13,10 @@ import dev.robert.authentication.domain.usecase.GetGoogleSignInOptionsUseCase
 import dev.robert.authentication.domain.usecase.SignInWithGoogleIntent
 import dev.robert.authentication.domain.usecase.SignInWithGoogleUseCase
 import dev.robert.authentication.domain.usecase.SignOutUseCase
+import javax.inject.Inject
 
 @HiltViewModel
-class SignInViewModel(
+class SignInViewModel @Inject constructor(
     private val signInWithGoogleIntent: SignInWithGoogleIntent,
     private val signOutUseCase: SignOutUseCase,
     private val signInWithGoogleUseCase: SignInWithGoogleUseCase,

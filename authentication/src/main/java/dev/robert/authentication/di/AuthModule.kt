@@ -10,6 +10,7 @@ import dagger.hilt.components.SingletonComponent
 import dev.robert.authentication.data.repository.SignInRepositoryImpl
 import dev.robert.authentication.domain.repository.SignInRepository
 import dev.robert.authentication.domain.usecase.GetGoogleSignInOptionsUseCase
+import dev.robert.authentication.domain.usecase.SignInWithGoogleIntent
 import dev.robert.authentication.domain.usecase.SignInWithGoogleUseCase
 import dev.robert.authentication.domain.usecase.SignOutUseCase
 import javax.inject.Singleton
@@ -50,17 +51,17 @@ object AuthModule {
 
     @Provides
     @Singleton
-    fun provideSignInWithGoogleIntentUseCase(
-        repository: SignInRepository
-    ): SignInWithGoogleUseCase {
-        return SignInWithGoogleUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
     fun provideSignOutUseCase(
         repository: SignInRepository
     ): SignOutUseCase {
         return SignOutUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSignInIntentUseCase(
+        repository: SignInRepository
+    ): SignInWithGoogleIntent {
+        return SignInWithGoogleIntent(repository)
     }
 }

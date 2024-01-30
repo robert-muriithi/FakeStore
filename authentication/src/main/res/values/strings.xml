@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="warning_password_level">Password not strong</string>
+    <string name="warning_password_level_strong">Password is strong</string>
+    <string name="warning_password_level_weak">Warning. Weak password</string>
+</resources>

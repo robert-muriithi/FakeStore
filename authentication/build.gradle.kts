@@ -60,8 +60,10 @@ dependencies {
     //Compose destinations
     implementation("io.github.raamcosta.compose-destinations:animations-core:1.9.55")
     implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("com.google.android.gms:play-services-base:18.3.0")
     ksp("io.github.raamcosta.compose-destinations:ksp:1.9.55")
 
     implementation(project(":network"))
+    implementation(project(":app"))
     implementation(project(":database"))
 }
