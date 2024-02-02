@@ -12,11 +12,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -27,13 +29,15 @@ import com.ramcosta.composedestinations.rememberNavHostEngine
 import com.ramcosta.composedestinations.spec.NavGraphSpec
 import dagger.hilt.android.AndroidEntryPoint
 import dev.robert.cart.presentation.destinations.CartScreenDestination
+import dev.robert.core.ui.theme.FakeStoreTheme
+import dev.robert.core.ui.theme.Theme
 import dev.robert.fakestore.composables.BottomNavItem
 import dev.robert.fakestore.navigation.NavGraphsBuilder
 import dev.robert.fakestore.navigation.NavigationHelper
-import dev.robert.fakestore.ui.theme.FakeStoreTheme
 import dev.robert.products.presentation.NavGraphs
 import dev.robert.products.presentation.destinations.HomeScreenDestination
 import dev.robert.user.presentation.destinations.ProfileScreenDestination
+import kotlinx.coroutines.Dispatchers
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -42,7 +46,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         installSplashScreen()
         setContent {
-            FakeStoreTheme {
+            val viewModel: MainViewModel = hiltViewModel()
+
+            val themeValue by viewModel.currentTheme.collectAsState(
+                initial = Theme.FOLLOW_SYSTEM.themeValue,
+                context = Dispatchers.Main.immediate
+            )
+
+            FakeStoreTheme(
+                theme = themeValue
+            ) {
                 val navController = rememberNavController()
                 val navHostEngine = rememberNavHostEngine()
                 val newBackStackEntry by navController.currentBackStackEntryAsState()

@@ -1,4 +1,4 @@
-package dev.robert.fakestore.ui.theme
+package dev.robert.core.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

@@ -1,4 +1,4 @@
-package dev.robert.fakestore.ui.theme
+package dev.robert.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

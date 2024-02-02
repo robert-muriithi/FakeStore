@@ -1,4 +1,4 @@
-package dev.robert.fakestore.ui.theme
+package dev.robert.core.ui.theme
 
 import android.app.Activity
 import android.os.Build

@@ -39,9 +39,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.robert.authentication.R
-import dev.robert.fakestore.ui.theme.md_theme_dark_onError
-import dev.robert.fakestore.ui.theme.md_theme_light_primary
-import dev.robert.fakestore.ui.theme.md_theme_light_tertiary
+import dev.robert.core.ui.theme.md_theme_dark_onError
+import dev.robert.core.ui.theme.md_theme_light_primary
+import dev.robert.core.ui.theme.md_theme_light_tertiary
 
 private fun String.Companion.empty(): String {
     return ""
