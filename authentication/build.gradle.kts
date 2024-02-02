@@ -64,6 +64,6 @@ dependencies {
     ksp("io.github.raamcosta.compose-destinations:ksp:1.9.55")
 
     implementation(project(":network"))
-    implementation(project(":app"))
     implementation(project(":database"))
+    implementation(project(":core"))
 }

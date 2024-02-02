@@ -64,4 +64,6 @@ dependencies {
 
     implementation(project(":network"))
     implementation(project(":database"))
+    implementation(project(":core"))
+
 }
