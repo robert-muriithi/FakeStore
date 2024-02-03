@@ -37,11 +37,18 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -58,7 +65,10 @@ import dev.robert.products.R
 import dev.robert.products.domain.model.Product
 import dev.robert.products.domain.model.Rating
 import dev.robert.products.presentation.destinations.ProductDetailsScreenDestination
-import dev.robert.products.presentation.widgets.AppBar
+import dev.robert.products.presentation.utils.ExitUntilCollapsedState
+import dev.robert.products.presentation.utils.FixedScrollFlagState
+import dev.robert.products.presentation.utils.ToolbarState
+import dev.robert.products.presentation.widgets.HomeCollapsibleToolbar
 import java.lang.Math.ceil
 import java.lang.Math.floor
 
@@ -68,18 +78,8 @@ import java.lang.Math.floor
 @RootNavGraph(start = true)
 fun HomeScreen(
     viewModel: ProductsViewModel = hiltViewModel(),
-//    navigator: HomeScreenNavigator,
+    navigator: DestinationsNavigator
 ) {
-
-    /*Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = "Home", style = MaterialTheme.typography.bodyLarge)
-
-    }*/
-
     val productsState = viewModel.productsState.value
     val categoriesState = viewModel.categoriesState.value
     val selectedCategory = viewModel.selectedCategory.value
@@ -87,18 +87,129 @@ fun HomeScreen(
 
     val verticalGridState = rememberLazyStaggeredGridState()
 
+    val onProductSelected: (Int) -> Unit = { productId ->
+        navigator.navigate(
+            ProductDetailsScreenDestination.invoke(productsState.data?.find { it.id == productId }!!)
+        )
+    }
+
+    val onProductCategorySelected: (String) -> Unit = { category ->
+        viewModel.setCategory(category)
+    }
+
     ProductsWidget(
         productsState = productsState,
         products = products,
         categoriesState = categoriesState,
-        selectedCategory = selectedCategory,
-        onCategorySelected = viewModel::setCategory,
+//        selectedCategory = selectedCategory,
+//        onCategorySelected = viewModel::setCategory,
         verticalGridState = verticalGridState,
-//        navigator = navigator
+        navigator = navigator,
+        modifier = Modifier,
+        onProductSelected = onProductSelected,
+        onProductCategorySelected = onProductCategorySelected
     )
 }
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Composable
+private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
+    return rememberSaveable(saver = ExitUntilCollapsedState.Saver) {
+        ExitUntilCollapsedState(toolbarHeightRange)
+    }
+}
+private  val MinToolbarHeight = 96.dp
+private  val MaxToolbarHeight = 176.dp
+@Composable
+fun ProductsWidget(
+    productsState: StateHolder<List<Product>>?,
+    products: StateHolder<List<Product>>?,
+    categoriesState: StateHolder<List<String>>?,
+    verticalGridState : LazyStaggeredGridState,
+    navigator: DestinationsNavigator,
+    modifier: Modifier = Modifier,
+    onProductSelected: (Int) -> Unit,
+    onProductCategorySelected: (String) -> Unit
+) {
+    val toolbarHeightRange = with(LocalDensity.current) {
+        MinToolbarHeight.roundToPx()..MaxToolbarHeight.roundToPx()
+    }
+    val toolbarState = rememberToolbarState(toolbarHeightRange)
+    val listState = rememberLazyStaggeredGridState()
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                toolbarState.scrollTopLimitReached = listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+                toolbarState.scrollOffset = toolbarState.scrollOffset - available.y
+                return Offset(0f, toolbarState.consumed)
+            }
+        }
+    }
+
+    Box(modifier = modifier.nestedScroll(nestedScrollConnection)) {
+        LazyProducts(
+            products = products,
+            onProductSelected = onProductSelected,
+            onProductCategorySelected = onProductCategorySelected,
+            verticalGridState = verticalGridState,
+            navigator = navigator,
+            contentPaddingValues = PaddingValues(bottom = if (toolbarState is FixedScrollFlagState) MinToolbarHeight else 0.dp)
+        )
+        HomeCollapsibleToolbar(
+            backgroundImageResId = R.drawable.banner,
+            progress = toolbarState.progress,
+            onSearchButtonClicked = {
+
+            },
+            onSettingsButtonClicked = {
+
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(with(LocalDensity.current) { toolbarState.height.toDp() })
+                .graphicsLayer { translationY = toolbarState.offset }
+        )
+    }
+}
+
+@Composable
+fun LazyProducts(
+    products: StateHolder<List<Product>>?,
+    onProductSelected: (Int) -> Unit,
+    onProductCategorySelected: (String) -> Unit,
+    verticalGridState : LazyStaggeredGridState,
+    navigator: DestinationsNavigator,
+    contentPaddingValues: PaddingValues = PaddingValues(8.dp)
+) {
+    val context = LocalContext.current
+    val contentPadding = PaddingValues(8.dp)
+    LazyVerticalStaggeredGrid(
+        contentPadding = contentPadding,
+        state = verticalGridState,
+        modifier = Modifier.fillMaxSize().padding(top = 20.dp),
+        columns = StaggeredGridCells.Adaptive(150.dp),
+        content = {
+            products?.data?.let {
+                items(it.size) { index ->
+                    ProductCard(
+                        product = products.data[index],
+                        onProductSelected = onProductSelected,
+                        onProductCategorySelected = onProductCategorySelected,
+                        onclick = {
+                            navigator.navigate(
+                                ProductDetailsScreenDestination.invoke(products.data[index])
+                            )
+                        }
+                    )
+                }
+            }
+        }
+    )
+}
+
+
+
+/*@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ProductsWidget(
     productsState: StateHolder<List<Product>>?,
@@ -107,30 +218,22 @@ fun ProductsWidget(
     selectedCategory: String,
     onCategorySelected: (String) -> Unit,
     verticalGridState : LazyStaggeredGridState,
-//    navigator: HomeScreenNavigator
+    navigator: DestinationsNavigator
 ) {
     Scaffold(
         topBar = {
-            /*TopBar(
-                categories = categoriesState,
-                selectedCategory = selectedCategory,
-                onCategorySelected = onCategorySelected,
-            )*/
-            AppBar(
-                title = "Hello, Robert",
-                showLeading = false
+            HomeCollapsibleToolbar(
+                backgroundImageResId = R.drawable.banner,
+                progress = 0f,
+                onSearchButtonClicked = {},
+                onSettingsButtonClicked = {}
             )
         },
     ) {
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 10.dp)) {
-            if (products!!.isLoading)
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            if (!products.isLoading && products.error != null)
-                ErrorComponent(productsState = productsState)
-            if (products.data?.isEmpty() == true && products.isLoading.not())
-                EmptyProductsComponent()
+        Box(modifier = Modifier.fillMaxSize().padding(top = 10.dp)) {
+            if (products!!.isLoading) CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            if (!products.isLoading && products.error != null) ErrorComponent(productsState = productsState)
+            if (products.data?.isEmpty() == true && products.isLoading.not()) EmptyProductsComponent()
             if (products.data?.isNotEmpty() == true && products.isLoading.not() && products.error == null)
                 ProductSuccessComponent(
                     productsState = productsState,
@@ -139,13 +242,13 @@ fun ProductsWidget(
                     onProductSelected = {},
                     onProductCategorySelected = {},
                     verticalGridState = verticalGridState,
-//                    navigator = navigator
+                    navigator = navigator
                 )
         }
     }
 
 
-}
+}*/
 
 @Composable
 fun ProductSuccessComponent(
@@ -155,7 +258,7 @@ fun ProductSuccessComponent(
     onProductSelected: (Int) -> Unit,
     onProductCategorySelected: (String) -> Unit,
     verticalGridState : LazyStaggeredGridState,
-//    navigator: HomeScreenNavigator
+    navigator: DestinationsNavigator
 ) {
     val data = products?.data
     if (products == null) return
@@ -167,7 +270,7 @@ fun ProductSuccessComponent(
             onProductSelected = onProductSelected,
             onProductCategorySelected = onProductCategorySelected,
             verticalGridState = verticalGridState,
-//            navigator = navigator
+            navigator = navigator
         )
         else -> Box(modifier = Modifier
             .fillMaxSize()
@@ -177,7 +280,7 @@ fun ProductSuccessComponent(
                 onProductSelected = onProductSelected,
                 onProductCategorySelected = onProductCategorySelected,
                 verticalGridState = verticalGridState,
-//                navigator = navigator
+                navigator = navigator
             )
         }
     }
@@ -258,8 +361,9 @@ fun ProductsList(
     products: StateHolder<List<Product>>?,
     onProductSelected: (Int) -> Unit,
     onProductCategorySelected: (String) -> Unit,
-    verticalGridState : LazyStaggeredGridState,
-//    navigator: HomeScreenNavigator
+    verticalGridState : LazyStaggeredGridState = rememberLazyStaggeredGridState(),
+    navigator: DestinationsNavigator,
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val contentPadding = PaddingValues(8.dp)
@@ -281,17 +385,16 @@ fun ProductsList(
                         onProductSelected = onProductSelected,
                         onProductCategorySelected = onProductCategorySelected,
                         onclick = {
-//                            navigator.navigate(
-//                                ProductDetailsScreenDestination.invoke(products.data[index])
-//                            )
-
-//                            navigator.openProductDetails(products.data[index])
+                            navigator.navigate(
+                                ProductDetailsScreenDestination.invoke(products.data[index])
+                            )
                         }
                     )
                 }
             }
         }
     )
+
 }
 
 @Composable

@@ -26,7 +26,6 @@ import coil.request.ImageRequest
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import dev.robert.products.domain.model.Product
-import dev.robert.products.presentation.widgets.AppBar
 import dev.robert.products.presentation.widgets.CustomButton
 
 interface ProductDetailsScreenNavigator {
@@ -50,16 +49,6 @@ fun ProductDetailsComponent(
 ) {
     Scaffold(
         topBar = {
-            AppBar(
-                title = product.title,
-                actions= {
-                    IconButton(onClick = {
-//                        navigator.navigate(CartScreenDestination)
-                    }) {
-                        Icon(imageVector = Icons.Filled.ShoppingCart, contentDescription = "Cart")
-                    }
-                }
-            )
         },
         bottomBar = {
             BottomAppBarComponent(
