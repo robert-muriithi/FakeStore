@@ -78,7 +78,7 @@ import java.lang.Math.floor
 @RootNavGraph(start = true)
 fun HomeScreen(
     viewModel: ProductsViewModel = hiltViewModel(),
-    navigator: DestinationsNavigator
+    navigator: HomeScreenNavigator
 ) {
     val productsState = viewModel.productsState.value
     val categoriesState = viewModel.categoriesState.value
@@ -87,11 +87,11 @@ fun HomeScreen(
 
     val verticalGridState = rememberLazyStaggeredGridState()
 
-    val onProductSelected: (Int) -> Unit = { productId ->
+    /*val onProductSelected: (Int) -> Unit = { productId ->
         navigator.navigate(
             ProductDetailsScreenDestination.invoke(productsState.data?.find { it.id == productId }!!)
         )
-    }
+    }*/
 
     val onProductCategorySelected: (String) -> Unit = { category ->
         viewModel.setCategory(category)
@@ -106,7 +106,7 @@ fun HomeScreen(
         verticalGridState = verticalGridState,
         navigator = navigator,
         modifier = Modifier,
-        onProductSelected = onProductSelected,
+//        onProductSelected = onProductSelected,
         onProductCategorySelected = onProductCategorySelected
     )
 }
@@ -125,10 +125,10 @@ fun ProductsWidget(
     products: StateHolder<List<Product>>?,
     categoriesState: StateHolder<List<String>>?,
     verticalGridState : LazyStaggeredGridState,
-    navigator: DestinationsNavigator,
+    navigator: HomeScreenNavigator,
     modifier: Modifier = Modifier,
-    onProductSelected: (Int) -> Unit,
-    onProductCategorySelected: (String) -> Unit
+//    onProductSelected: (Int) -> Unit,
+    onProductCategorySelected: (String) -> Unit,
 ) {
     val toolbarHeightRange = with(LocalDensity.current) {
         MinToolbarHeight.roundToPx()..MaxToolbarHeight.roundToPx()
@@ -149,14 +149,15 @@ fun ProductsWidget(
     Box(modifier = modifier.nestedScroll(nestedScrollConnection)) {
         LazyProducts(
             products = products,
-            onProductSelected = onProductSelected,
+//            onProductSelected = onProductSelected,
             onProductCategorySelected = onProductCategorySelected,
             verticalGridState = verticalGridState,
             navigator = navigator,
             contentPaddingValues = PaddingValues(bottom = if (toolbarState is FixedScrollFlagState) MinToolbarHeight else 0.dp)
         )
-        HomeCollapsibleToolbar(
+        /*HomeCollapsibleToolbar(
             backgroundImageResId = R.drawable.banner,
+            logoResId = android.R.drawable.ic_menu_search,
             progress = toolbarState.progress,
             onSearchButtonClicked = {
 
@@ -168,18 +169,18 @@ fun ProductsWidget(
                 .fillMaxWidth()
                 .height(with(LocalDensity.current) { toolbarState.height.toDp() })
                 .graphicsLayer { translationY = toolbarState.offset }
-        )
+        )*/
     }
 }
 
 @Composable
 fun LazyProducts(
     products: StateHolder<List<Product>>?,
-    onProductSelected: (Int) -> Unit,
+//    onProductSelected: (Int) -> Unit,
     onProductCategorySelected: (String) -> Unit,
     verticalGridState : LazyStaggeredGridState,
-    navigator: DestinationsNavigator,
-    contentPaddingValues: PaddingValues = PaddingValues(8.dp)
+    navigator: HomeScreenNavigator,
+    contentPaddingValues: PaddingValues = PaddingValues(8.dp),
 ) {
     val context = LocalContext.current
     val contentPadding = PaddingValues(8.dp)
@@ -193,12 +194,14 @@ fun LazyProducts(
                 items(it.size) { index ->
                     ProductCard(
                         product = products.data[index],
-                        onProductSelected = onProductSelected,
-                        onProductCategorySelected = onProductCategorySelected,
-                        onclick = {
+                        /*onProductSelected = {
                             navigator.navigate(
                                 ProductDetailsScreenDestination.invoke(products.data[index])
                             )
+                        },*/
+//                        onProductCategorySelected = onProductCategorySelected,
+                        onclick = {
+                            navigator.openProductDetails(products.data[index])
                         }
                     )
                 }
@@ -382,8 +385,8 @@ fun ProductsList(
                 items(it.size) { index ->
                     ProductCard(
                         product = products.data[index],
-                        onProductSelected = onProductSelected,
-                        onProductCategorySelected = onProductCategorySelected,
+//                        onProductSelected = onProductSelected,
+//                        onProductCategorySelected = onProductCategorySelected,
                         onclick = {
                             navigator.navigate(
                                 ProductDetailsScreenDestination.invoke(products.data[index])
@@ -423,8 +426,8 @@ fun HeaderItem() {
 @Composable
 fun ProductCard(
     product: Product,
-    onProductSelected: (Int) -> Unit,
-    onProductCategorySelected: (String) -> Unit,
+//    onProductSelected: (Int) -> Unit,
+//    onProductCategorySelected: (String) -> Unit,
     modifier: Modifier = Modifier,
     onclick: (Int) -> Unit = {}
 ) {
@@ -432,7 +435,9 @@ fun ProductCard(
         modifier = modifier
             .padding(8.dp)
             .fillMaxSize()
-            .clickable { onProductSelected(product.id) }) {
+            .clickable {
+                onclick(product.id)
+            }) {
         Column(modifier = modifier.fillMaxWidth()) {
             ProductImage(
                 imageUrl = product.image,

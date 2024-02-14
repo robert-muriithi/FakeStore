@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -30,15 +32,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import dev.robert.products.presentation.utils.ExitUntilCollapsedState
@@ -48,6 +55,22 @@ import dev.robert.products.presentation.utils.ToolbarState
 private val MinToolbarHeight = 96.dp
 private val MaxToolbarHeight = 176.dp
 
+private val ContentPadding = 8.dp
+private val Elevation = 4.dp
+private val ButtonSize = 24.dp
+private const val Alpha = 0.75f
+
+private val ExpandedPadding = 1.dp
+private val CollapsedPadding = 3.dp
+
+private val ExpandedCostaRicaHeight = 20.dp
+private val CollapsedCostaRicaHeight = 16.dp
+
+private val ExpandedWildlifeHeight = 32.dp
+private val CollapsedWildlifeHeight = 24.dp
+
+private val MapHeight = CollapsedCostaRicaHeight * 2
+
 
 @Composable
 private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
@@ -55,73 +78,67 @@ private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
         ExitUntilCollapsedState(toolbarHeightRange)
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeCollapsibleToolbar(
     @DrawableRes backgroundImageResId: Int,
+    @DrawableRes logoResId: Int,
     progress: Float,
     onSearchButtonClicked: () -> Unit,
     onSettingsButtonClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val costaRicaHeight = with(LocalDensity.current) {
+        lerp(CollapsedCostaRicaHeight, ExpandedCostaRicaHeight, progress)
+    }
+    val wildlifeHeight = with(LocalDensity.current) {
+        lerp(CollapsedWildlifeHeight, ExpandedWildlifeHeight, progress)
+    }
+    val logoPadding = with(LocalDensity.current) {
+        lerp(CollapsedPadding, ExpandedPadding, progress)
+    }
     Surface(
         color = MaterialTheme.colorScheme.background,
         modifier = modifier
     ) {
-        Box (modifier = Modifier.fillMaxWidth()) {
-            val toolbarState = rememberToolbarState((MinToolbarHeight to Int)..MaxToolbarHeight)
-            val toolbarHeight = with(LocalDensity.current) { toolbarState.height.toDp() }
-            val toolbarScrollConnection = remember {
-                object : NestedScrollConnection {
-                    override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                        val delta = available.y
-                        val consumed = toolbarState.scroll(delta)
-                        return Offset(0f, consumed)
-                    }
-                }
-            }
-            val context = LocalContext.current
-            val imageRequest = ImageRequest.Builder(context)
-                .data(backgroundImageResId)
-                .build()
-
-            val imagePainter = rememberAsyncImagePainter(request = imageRequest)
+        Box(
+            modifier = Modifier
+                .statusBarsPadding()
+                .padding(horizontal = ContentPadding)
+                .fillMaxWidth()
+        ) {
             Image(
-                painter = imagePainter,
+                painter = painterResource(id = backgroundImageResId),
                 contentDescription = null,
+                contentScale = ContentScale.FillWidth,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        alpha = progress * Alpha
+                    },
+                alignment = BiasAlignment(0f, 1f - ((1f - progress) * 0.75f))
+            )
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(toolbarHeight)
-            )
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Products",
-                        style = MaterialTheme.typography.displaySmall,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                },
-                actions = {
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        SearchButton(onClick = onSearchButtonClicked)
-                        SettingsButton(onClick = onSettingsButtonClicked)
-                    }
-                },
+                    .statusBarsPadding()
+                    .padding(horizontal = ContentPadding),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                SearchButton(onSearchButtonClicked)
+                SettingsButton(onSettingsButtonClicked)
+            }
+            Image(
+                painter = painterResource(id = logoResId),
+                contentDescription = null,
+                contentScale = ContentScale.FillWidth,
                 modifier = Modifier
-                    .height(toolbarHeight)
-                    .nestedScroll(toolbarScrollConnection)
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        alpha = progress * Alpha
+                    },
+                alignment = BiasAlignment(0f, 1f - ((1f - progress) * 0.75f))
             )
         }
     }
@@ -129,6 +146,15 @@ fun HomeCollapsibleToolbar(
 
 private operator fun Any.rangeTo(maxToolbarHeight: Dp): IntRange {
     return IntRange(0, maxToolbarHeight.value.toInt())
+}
+
+@Composable
+fun CollapsingToolBarLayout(
+    progress: Float,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+
 }
 
 @Composable
